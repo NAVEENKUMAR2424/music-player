@@ -42,3 +42,40 @@ label {
 img.track {
   border: 3px solid #8a8a8a;
 }
+
+#box{
+  display: flex;
+  justify-content: space-around;
+
+}
+
+#card{
+  border-radius: 25px;
+background: #278b3b;
+box-shadow:  34px 34px 67px #1b6029,
+             -34px -34px 67px #33b64d;
+
+  width: 300px;
+  height: 500px;
+}
+
+#image{
+  margin: 70px;
+  border-radius: 10px;
+}
+
+#title{
+  display: flex;
+  justify-content: center;
+  color: aliceblue;
+}
+
+#artist{
+  display: flex;
+  justify-content: center;
+}
+
+#buttons{
+  display: flex;
+  justify-content: space-evenly;
+}
