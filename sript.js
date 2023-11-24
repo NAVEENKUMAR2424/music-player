@@ -87,7 +87,6 @@ const APIController = (function() {
   
   
   const UIController = (function() {
-  
     const DOMElements = {
         selectGenre: '#select_genre',
         selectPlaylist: '#select_playlist',
@@ -96,12 +95,10 @@ const APIController = (function() {
         hfToken: '#hidden_token',
         divSonglist: '.song-list'
     }
-  
     var   songUrls = [];
     var   songImageUrls = [];
     var   songartists = [];
     var   songTitle=[];
-  
     return {
   
         inputField() {
@@ -155,7 +152,7 @@ const APIController = (function() {
               <source src="${songUrl}" type="audio/mpeg">
                </audio>
                <div id=buttons>
-               <button onclick="playPreviousSong()" id="pre">Preview</button>
+               <button id="preButton">Preview</button>
                <button id="playButton" onclick="playAudio()">Play</button>
                <button id="nextButton">next</button
                </div>
@@ -166,15 +163,24 @@ const APIController = (function() {
   
             const nextButton = document.getElementById("nextButton");
             nextButton.addEventListener("click", playNextSong,false);
+            const preButton = document.getElementById("preButton");
+            preButton.addEventListener("click", pre,false);
   
             nextButton.songUrls = songUrls;
             nextButton.songImageUrls = songImageUrls;
             nextButton.songartists = songartists;
             nextButton.songTitle=songTitle;
+
+            preButton.songUrls = songUrls;
+            preButton.songImageUrls = songImageUrls;
+            preButton.songTitle = songTitle;
+            preButton.songartists = songartists; 
   
             
             const audio = document.getElementById("myAudio");
             audio.addEventListener("ended", playNextSong, false);
+
+            audio.play()
               
         },
   
@@ -202,25 +208,26 @@ const APIController = (function() {
             }
         }
     }
-  
   })();
-  
-  function playAudio() {
-    const audio = document.getElementById("myAudio"); 
-    const playButton = document.getElementById("playButton"); 
-  
-    if (audio.paused) {
-      audio.play(); 
-      playButton.innerHTML = 'pause'; 
-    } else {
-      audio.pause(); 
-      playButton.innerHTML = 'play'; 
-    }
-  }
+
   let currentSongIndex = 0;
-  
+  function pre(evt) {
+   let songUrls = evt.currentTarget.songUrls;
+   let songImageUrls = evt.currentTarget.songImageUrls;
+   let songartists=evt.currentTarget.songartists;
+   let songTitle=evt.currentTarget.songTitle;
+     if (currentSongIndex > 0) {
+         currentSongIndex--;
+     } else {
+         currentSongIndex = songUrls.length - 1; 
+     }
+          changeitem(currentSongIndex, songImageUrls, songartists,songTitle);
+      const audio = document.getElementById("myAudio");
+      audio.src = songUrls[currentSongIndex];
+      audio.play();
+  }; 
+
   function playNextSong(evt) {
-    // Retrieve song-related data from the event object
    let songUrls = evt.currentTarget.songUrls;
    let songImageUrls = evt.currentTarget.songImageUrls;
    let songartists=evt.currentTarget.songartists;
@@ -228,13 +235,12 @@ const APIController = (function() {
      if (currentSongIndex < songUrls.length - 1) {
          currentSongIndex++;
      } else {
-         currentSongIndex = 0; // Wrap around to the first song if at the end of the list.
+         currentSongIndex = 0; 
      }
-     // Update the song details (image, title, artist) for the previous song.
      changeitem(currentSongIndex, songImageUrls, songartists,songTitle);
       const audio = document.getElementById("myAudio");
       audio.src = songUrls[currentSongIndex];
-      audio.play(); // Auto-play the next song
+      audio.play(); 
   };  
   
   function changeitem(currentSongIndex,songImageUrls,songartists,songTitle) {
@@ -245,14 +251,21 @@ const APIController = (function() {
     const Title = document.getElementById("title")
     Title.textContent = songTitle[currentSongIndex];
   }
+
+  function playAudio() {
+    const audio = document.getElementById("myAudio"); 
+    const playButton = document.getElementById("playButton"); 
   
-  
-  
-  
+    if (audio.paused) {
+      audio.play(); 
+      playButton.innerHTML = 'pause'; 
+    } else {
+      audio.pause(); 
+      playButton.innerHTML = 'play'; 
+    }   
+}
   const APPController = (function(UICtrl, APICtrl) {
-  
     const DOMInputs = UICtrl.inputField();
-  
     const loadGenres = async () => {
         const token = await APICtrl.getToken();           
         UICtrl.storeToken(token);
@@ -268,7 +281,6 @@ const APIController = (function() {
         const playlist = await APICtrl.getPlaylistByGenre(token, genreId);       
         playlist.forEach(p => UICtrl.createPlaylist(p.name, p.tracks.href));
     });
-  
   
     DOMInputs.submit.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -288,11 +300,8 @@ const APIController = (function() {
         const trackEndpoint = e.target.id;
         const track = await APICtrl.getTrack(token, trackEndpoint);
         UICtrl.createTrackDetail(track.album.images[0].url, track.name, track.artists[0].name,track.preview_url);
-           
+          
     });    
-  
-    
-    
     return {
         init() {
             console.log('App is starting');
@@ -301,8 +310,6 @@ const APIController = (function() {
     }
   
   })(UIController, APIController);
-  
-  // will need to call a method to load the genres on page load
   APPController.init();
   
   
